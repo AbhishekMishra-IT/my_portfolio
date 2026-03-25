@@ -7,7 +7,7 @@ const P = {
   email: "abhishekmofficial12@gmail.com",
   phone: "+91 7800-7660-04",
   linkedin: "https://linkedin.com/in/abhishekmishra-it",
-  github: "https://github.com/AbhishekMishra-IT/my-portfolio",
+  github: "https://github.com/AbhishekMishra-IT",
   summary:
     "Results-driven developer with 5+ years of experience building scalable, high-performance cross-platform mobile and web applications. Specialized in B2B/B2C solutions with offline-first architecture, real-time data sync, and pixel-perfect UI delivery.",
   exp: [
