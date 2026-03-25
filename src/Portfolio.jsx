@@ -201,6 +201,45 @@ const DownloadIcon = ({ size = 18, color = "currentColor" }) => (
     <line x1="12" y1="15" x2="12" y2="3" />
   </svg>
 );
+const MenuIcon = ({ size = 24, color = "currentColor" }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth="2"
+    strokeLinecap="round"
+  >
+    <line x1="3" y1="6" x2="21" y2="6" />
+    <line x1="3" y1="12" x2="21" y2="12" />
+    <line x1="3" y1="18" x2="21" y2="18" />
+  </svg>
+);
+const CloseIcon = ({ size = 24, color = "currentColor" }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth="2"
+    strokeLinecap="round"
+  >
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
+const useIsMobile = () => {
+  const [m, setM] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const h = () => setM(window.innerWidth < 768);
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
+  }, []);
+  return m;
+};
 
 const GlowMesh = () => {
   const ref = useRef(null);
@@ -217,7 +256,8 @@ const GlowMesh = () => {
       h = c.height = c.parentElement.offsetHeight;
     };
     resize();
-    for (let i = 0; i < 60; i++)
+    const count = w < 500 ? 30 : 60;
+    for (let i = 0; i < count; i++)
       particles.push({
         x: Math.random() * w,
         y: Math.random() * h,
@@ -238,11 +278,11 @@ const GlowMesh = () => {
         ctx.fill();
         particles.slice(i + 1).forEach((q) => {
           const d = Math.hypot(p.x - q.x, p.y - q.y);
-          if (d < 120) {
+          if (d < 100) {
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(q.x, q.y);
-            ctx.strokeStyle = `rgba(99,102,241,${0.08 * (1 - d / 120)})`;
+            ctx.strokeStyle = `rgba(99,102,241,${0.08 * (1 - d / 100)})`;
             ctx.lineWidth = 0.8;
             ctx.stroke();
           }
@@ -265,48 +305,8 @@ const GlowMesh = () => {
   );
 };
 
-const CursorGlow = () => {
-  const ref = useRef(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const move = (e) => {
-      el.style.left = e.clientX + "px";
-      el.style.top = e.clientY + "px";
-      el.style.opacity = "1";
-    };
-    const leave = () => {
-      el.style.opacity = "0";
-    };
-    document.addEventListener("mousemove", move);
-    document.addEventListener("mouseleave", leave);
-    return () => {
-      document.removeEventListener("mousemove", move);
-      document.removeEventListener("mouseleave", leave);
-    };
-  }, []);
-  return (
-    <div
-      ref={ref}
-      style={{
-        position: "fixed",
-        width: 500,
-        height: 500,
-        borderRadius: "50%",
-        pointerEvents: "none",
-        zIndex: 0,
-        opacity: 0,
-        background:
-          "radial-gradient(circle,rgba(99,102,241,0.06) 0%,transparent 70%)",
-        transform: "translate(-50%,-50%)",
-        transition: "opacity 0.3s",
-      }}
-    />
-  );
-};
-
 const Section = ({ id, children }) => (
-  <section id={id} style={{ padding: "100px 0", position: "relative" }}>
+  <section id={id} style={{ padding: "60px 0", position: "relative" }}>
     {children}
   </section>
 );
@@ -329,11 +329,17 @@ const SectionLabel = ({ children }) => (
   </div>
 );
 
-const SectionTitle = ({ children, light }) => (
-  <div style={{ marginBottom: 56, textAlign: "center" }}>
+const SectionTitle = ({ children, light, mobile }) => (
+  <div
+    style={{
+      marginBottom: mobile ? 32 : 48,
+      textAlign: "center",
+      padding: "0 16px",
+    }}
+  >
     <h2
       style={{
-        fontSize: 40,
+        fontSize: mobile ? 28 : 40,
         fontWeight: 800,
         letterSpacing: "-0.03em",
         color: light ? "#fff" : "#0f172a",
@@ -364,7 +370,7 @@ const GlassCard = ({
         (hover ? "rgba(99,102,241,0.2)" : "rgba(226,232,240,0.8)"),
       borderRadius: 20,
       transition: "all 0.4s cubic-bezier(0.4,0,0.2,1)",
-      transform: hover ? "translateY(-6px)" : "none",
+      transform: hover ? "translateY(-4px)" : "none",
       boxShadow: hover
         ? "0 20px 60px rgba(99,102,241,0.12)"
         : "0 4px 20px rgba(0,0,0,0.03)",
@@ -379,6 +385,8 @@ export default function Portfolio() {
   const [active, setActive] = useState("hero");
   const [hp, setHp] = useState(null);
   const [hs, setHs] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const mob = useIsMobile();
 
   const nav = [
     { id: "hero", l: "Home" },
@@ -406,6 +414,7 @@ export default function Portfolio() {
 
   const scrollTo = (id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    setMenuOpen(false);
   };
 
   return (
@@ -418,8 +427,13 @@ export default function Portfolio() {
         position: "relative",
       }}
     >
-      <CursorGlow />
-      <style>{`*{margin:0;padding:0;box-sizing:border-box}body{margin:0;padding:0}@keyframes scrollBounce{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(4px);opacity:1}}`}</style>
+      <style>{`
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{margin:0;padding:0;overflow-x:hidden}
+        @keyframes scrollBounce{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(4px);opacity:1}}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        a{text-decoration:none}
+      `}</style>
 
       {/* NAV */}
       <nav
@@ -427,17 +441,136 @@ export default function Portfolio() {
           position: "sticky",
           top: 0,
           zIndex: 100,
-          background: "rgba(250,251,255,0.7)",
+          background: "rgba(250,251,255,0.85)",
           backdropFilter: "blur(20px) saturate(180%)",
           borderBottom: "1px solid rgba(226,232,240,0.5)",
-          padding: "0 32px",
-          height: 64,
+          padding: mob ? "0 16px" : "0 32px",
+          height: 60,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
         }}
       >
-        <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: 10,
+              background: "linear-gradient(135deg,#6366f1,#a855f7)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#fff",
+              fontWeight: 900,
+              fontSize: 15,
+            }}
+          >
+            A
+          </div>
+          <span style={{ fontWeight: 800, fontSize: 17, color: "#0f172a" }}>
+            Abhishek<span style={{ color: "#a855f7" }}>.</span>
+          </span>
+        </div>
+
+        {mob ? (
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: 4,
+              display: "flex",
+            }}
+          >
+            {menuOpen ? (
+              <CloseIcon size={24} color="#0f172a" />
+            ) : (
+              <MenuIcon size={24} color="#0f172a" />
+            )}
+          </button>
+        ) : (
+          <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+            {nav.map((n) => (
+              <button
+                key={n.id}
+                onClick={() => scrollTo(n.id)}
+                style={{
+                  background:
+                    active === n.id
+                      ? "linear-gradient(135deg,#6366f1,#a855f7)"
+                      : "transparent",
+                  color: active === n.id ? "#fff" : "#64748b",
+                  border: "none",
+                  borderRadius: 10,
+                  padding: "7px 16px",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  transition: "all 0.3s",
+                }}
+              >
+                {n.l}
+              </button>
+            ))}
+            <div
+              style={{
+                width: 1,
+                height: 24,
+                background: "#e2e8f0",
+                margin: "0 8px",
+              }}
+            />
+            <a
+              href={P.linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: "#64748b",
+                display: "flex",
+                padding: 6,
+                borderRadius: 8,
+              }}
+            >
+              <LinkedInIcon size={18} />
+            </a>
+            <a
+              href={P.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: "#64748b",
+                display: "flex",
+                padding: 6,
+                borderRadius: 8,
+              }}
+            >
+              <GitHubIcon size={18} />
+            </a>
+          </div>
+        )}
+      </nav>
+
+      {/* MOBILE MENU */}
+      {mob && menuOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: 60,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 99,
+            background: "rgba(250,251,255,0.97)",
+            backdropFilter: "blur(20px)",
+            padding: "24px 20px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+            animation: "fadeIn 0.2s ease",
+          }}
+        >
           {nav.map((n) => (
             <button
               key={n.id}
@@ -446,15 +579,16 @@ export default function Portfolio() {
                 background:
                   active === n.id
                     ? "linear-gradient(135deg,#6366f1,#a855f7)"
-                    : "transparent",
-                color: active === n.id ? "#fff" : "#64748b",
+                    : "#f8fafc",
+                color: active === n.id ? "#fff" : "#334155",
                 border: "none",
-                borderRadius: 10,
-                padding: "7px 16px",
-                fontSize: 13,
+                borderRadius: 14,
+                padding: "16px 20px",
+                fontSize: 16,
                 fontWeight: 600,
                 cursor: "pointer",
-                transition: "all 0.3s",
+                textAlign: "left",
+                transition: "all 0.2s",
               }}
             >
               {n.l}
@@ -462,46 +596,62 @@ export default function Portfolio() {
           ))}
           <div
             style={{
-              width: 1,
-              height: 24,
-              background: "#e2e8f0",
-              margin: "0 8px",
-            }}
-          />
-          <a
-            href={P.linkedin}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              color: "#64748b",
               display: "flex",
-              padding: 6,
-              borderRadius: 8,
+              gap: 12,
+              marginTop: 16,
+              paddingTop: 16,
+              borderTop: "1px solid #e2e8f0",
             }}
           >
-            <LinkedInIcon size={18} />
-          </a>
-          <a
-            href={P.github}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              color: "#64748b",
-              display: "flex",
-              padding: 6,
-              borderRadius: 8,
-            }}
-          >
-            <GitHubIcon size={18} />
-          </a>
+            <a
+              href={P.linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                padding: "14px",
+                borderRadius: 12,
+                background: "#f1f5f9",
+                color: "#334155",
+                fontWeight: 600,
+                fontSize: 14,
+              }}
+            >
+              <LinkedInIcon size={18} color="#6366f1" /> LinkedIn
+            </a>
+            <a
+              href={P.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                padding: "14px",
+                borderRadius: 12,
+                background: "#f1f5f9",
+                color: "#334155",
+                fontWeight: 600,
+                fontSize: 14,
+              }}
+            >
+              <GitHubIcon size={18} color="#6366f1" /> GitHub
+            </a>
+          </div>
         </div>
-      </nav>
+      )}
 
       {/* HERO */}
       <section
         id="hero"
         style={{
-          minHeight: "94vh",
+          minHeight: mob ? "85vh" : "94vh",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -509,7 +659,7 @@ export default function Portfolio() {
             "linear-gradient(160deg,#0a0f1e 0%,#131832 40%,#1a1040 100%)",
           position: "relative",
           overflow: "hidden",
-          padding: "60px 24px",
+          padding: mob ? "48px 20px" : "60px 24px",
         }}
       >
         <GlowMesh />
@@ -518,23 +668,11 @@ export default function Portfolio() {
             position: "absolute",
             top: "-20%",
             right: "-10%",
-            width: 600,
-            height: 600,
+            width: mob ? 300 : 600,
+            height: mob ? 300 : 600,
             borderRadius: "50%",
             background:
               "radial-gradient(circle,rgba(99,102,241,0.12) 0%,transparent 60%)",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            bottom: "-20%",
-            left: "-10%",
-            width: 500,
-            height: 500,
-            borderRadius: "50%",
-            background:
-              "radial-gradient(circle,rgba(168,85,247,0.1) 0%,transparent 60%)",
           }}
         />
 
@@ -544,6 +682,7 @@ export default function Portfolio() {
             position: "relative",
             zIndex: 2,
             maxWidth: 760,
+            width: "100%",
           }}
         >
           <div
@@ -551,20 +690,20 @@ export default function Portfolio() {
               display: "inline-flex",
               alignItems: "center",
               gap: 8,
-              padding: "8px 20px",
+              padding: "8px 16px",
               borderRadius: 50,
               background: "rgba(99,102,241,0.1)",
               border: "1px solid rgba(99,102,241,0.2)",
               color: "#a5b4fc",
-              fontSize: 13,
+              fontSize: mob ? 11 : 13,
               fontWeight: 600,
-              marginBottom: 32,
+              marginBottom: mob ? 20 : 32,
             }}
           >
             <span
               style={{
-                width: 8,
-                height: 8,
+                width: 7,
+                height: 7,
                 borderRadius: "50%",
                 background: "#22c55e",
                 boxShadow: "0 0 8px #22c55e",
@@ -575,7 +714,7 @@ export default function Portfolio() {
 
           <h1
             style={{
-              fontSize: 64,
+              fontSize: mob ? 38 : 64,
               fontWeight: 900,
               color: "#fff",
               margin: "0 0 8px",
@@ -596,39 +735,40 @@ export default function Portfolio() {
           </h1>
           <p
             style={{
-              fontSize: 20,
+              fontSize: mob ? 16 : 20,
               color: "#94a3b8",
-              margin: "16px auto 0",
+              margin: "12px auto 0",
               fontWeight: 400,
               lineHeight: 1.6,
               maxWidth: 580,
+              padding: "0 8px",
             }}
           >
             Software Engineer specializing in{" "}
             <strong style={{ color: "#e2e8f0" }}>
               React Native & React.js
             </strong>{" "}
-            — building high-performance mobile & web experiences that users
-            love.
+            — building high-performance mobile & web experiences.
           </p>
 
+          {/* Stats */}
           <div
             style={{
               display: "flex",
               gap: 2,
               justifyContent: "center",
-              marginTop: 48,
+              marginTop: mob ? 32 : 48,
               background: "rgba(255,255,255,0.03)",
-              borderRadius: 16,
+              borderRadius: 14,
               border: "1px solid rgba(255,255,255,0.06)",
               overflow: "hidden",
-              maxWidth: 480,
+              maxWidth: mob ? 340 : 480,
               marginLeft: "auto",
               marginRight: "auto",
             }}
           >
             {[
-              { n: "5+", l: "Years Experience" },
+              { n: "5+", l: "Years Exp." },
               { n: "10+", l: "Apps Shipped" },
               { n: "3", l: "Companies" },
             ].map((s, i) => (
@@ -636,7 +776,7 @@ export default function Portfolio() {
                 key={s.l}
                 style={{
                   flex: 1,
-                  padding: "24px 16px",
+                  padding: mob ? "16px 8px" : "24px 16px",
                   textAlign: "center",
                   borderRight:
                     i < 2 ? "1px solid rgba(255,255,255,0.06)" : "none",
@@ -644,7 +784,7 @@ export default function Portfolio() {
               >
                 <div
                   style={{
-                    fontSize: 28,
+                    fontSize: mob ? 22 : 28,
                     fontWeight: 800,
                     background: "linear-gradient(135deg,#818cf8,#c084fc)",
                     WebkitBackgroundClip: "text",
@@ -655,7 +795,7 @@ export default function Portfolio() {
                 </div>
                 <div
                   style={{
-                    fontSize: 11,
+                    fontSize: mob ? 10 : 11,
                     color: "#64748b",
                     fontWeight: 500,
                     marginTop: 4,
@@ -667,13 +807,15 @@ export default function Portfolio() {
             ))}
           </div>
 
+          {/* CTA */}
           <div
             style={{
               display: "flex",
-              gap: 16,
+              gap: 12,
               justifyContent: "center",
-              marginTop: 40,
+              marginTop: mob ? 28 : 40,
               flexWrap: "wrap",
+              padding: "0 8px",
             }}
           >
             <button
@@ -683,8 +825,8 @@ export default function Portfolio() {
                 color: "#fff",
                 border: "none",
                 borderRadius: 14,
-                padding: "16px 36px",
-                fontSize: 15,
+                padding: mob ? "14px 28px" : "16px 36px",
+                fontSize: mob ? 14 : 15,
                 fontWeight: 700,
                 cursor: "pointer",
                 boxShadow: "0 8px 32px rgba(99,102,241,0.35)",
@@ -702,8 +844,8 @@ export default function Portfolio() {
                 color: "#e2e8f0",
                 border: "1px solid rgba(255,255,255,0.12)",
                 borderRadius: 14,
-                padding: "16px 36px",
-                fontSize: 15,
+                padding: mob ? "14px 28px" : "16px 36px",
+                fontSize: mob ? 14 : 15,
                 fontWeight: 600,
                 cursor: "pointer",
                 display: "flex",
@@ -716,12 +858,13 @@ export default function Portfolio() {
             </button>
           </div>
 
+          {/* Social */}
           <div
             style={{
               display: "flex",
               gap: 12,
               justifyContent: "center",
-              marginTop: 40,
+              marginTop: mob ? 24 : 40,
             }}
           >
             {[
@@ -765,69 +908,78 @@ export default function Portfolio() {
           </div>
         </div>
 
-        <div
-          style={{
-            position: "absolute",
-            bottom: 32,
-            left: "50%",
-            transform: "translateX(-50%)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
-          <span
-            style={{
-              fontSize: 11,
-              color: "#475569",
-              letterSpacing: "0.1em",
-              fontWeight: 500,
-            }}
-          >
-            SCROLL
-          </span>
+        {!mob && (
           <div
             style={{
-              width: 20,
-              height: 32,
-              borderRadius: 10,
-              border: "1.5px solid rgba(255,255,255,0.15)",
+              position: "absolute",
+              bottom: 32,
+              left: "50%",
+              transform: "translateX(-50%)",
               display: "flex",
-              justifyContent: "center",
-              paddingTop: 6,
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 8,
             }}
           >
+            <span
+              style={{
+                fontSize: 11,
+                color: "#475569",
+                letterSpacing: "0.1em",
+                fontWeight: 500,
+              }}
+            >
+              SCROLL
+            </span>
             <div
               style={{
-                width: 3,
-                height: 8,
-                borderRadius: 2,
-                background: "#6366f1",
-                animation: "scrollBounce 1.5s ease infinite",
+                width: 20,
+                height: 32,
+                borderRadius: 10,
+                border: "1.5px solid rgba(255,255,255,0.15)",
+                display: "flex",
+                justifyContent: "center",
+                paddingTop: 6,
               }}
-            />
+            >
+              <div
+                style={{
+                  width: 3,
+                  height: 8,
+                  borderRadius: 2,
+                  background: "#6366f1",
+                  animation: "scrollBounce 1.5s ease infinite",
+                }}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </section>
 
-      <div style={{ maxWidth: 1120, margin: "0 auto", padding: "0 24px" }}>
+      <div
+        style={{
+          maxWidth: 1120,
+          margin: "0 auto",
+          padding: mob ? "0 16px" : "0 24px",
+        }}
+      >
         {/* ABOUT */}
         <Section id="about">
           <SectionLabel>Who I Am</SectionLabel>
-          <SectionTitle>About Me</SectionTitle>
+          <SectionTitle mobile={mob}>About Me</SectionTitle>
           <div
             style={{
-              display: "grid",
+              display: mob ? "flex" : "grid",
               gridTemplateColumns: "1.2fr 1fr",
-              gap: 56,
-              alignItems: "center",
+              flexDirection: "column",
+              gap: mob ? 32 : 56,
+              alignItems: mob ? "stretch" : "center",
             }}
           >
             <div>
               <p
                 style={{
-                  fontSize: 17,
+                  fontSize: mob ? 15 : 17,
                   lineHeight: 1.85,
                   color: "#475569",
                   margin: 0,
@@ -837,7 +989,7 @@ export default function Portfolio() {
               </p>
               <p
                 style={{
-                  fontSize: 17,
+                  fontSize: mob ? 15 : 17,
                   lineHeight: 1.85,
                   color: "#475569",
                   marginTop: 16,
@@ -851,8 +1003,8 @@ export default function Portfolio() {
               <div
                 style={{
                   display: "flex",
-                  gap: 10,
-                  marginTop: 28,
+                  gap: 8,
+                  marginTop: 24,
                   flexWrap: "wrap",
                 }}
               >
@@ -867,9 +1019,9 @@ export default function Portfolio() {
                   <span
                     key={t}
                     style={{
-                      padding: "7px 18px",
+                      padding: "6px 14px",
                       borderRadius: 10,
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: 600,
                       background:
                         "linear-gradient(135deg,rgba(99,102,241,0.08),rgba(168,85,247,0.08))",
@@ -886,7 +1038,7 @@ export default function Portfolio() {
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
-                gap: 16,
+                gap: 12,
               }}
             >
               {[
@@ -911,22 +1063,32 @@ export default function Portfolio() {
                   key={card.title}
                   style={{
                     background: "#fff",
-                    borderRadius: 18,
-                    padding: 24,
+                    borderRadius: 16,
+                    padding: mob ? 18 : 24,
                     boxShadow: "0 4px 24px rgba(0,0,0,0.04)",
                     border: "1px solid #f1f5f9",
                     textAlign: "center",
                   }}
                 >
-                  <div style={{ fontSize: 32, marginBottom: 10 }}>
+                  <div style={{ fontSize: mob ? 26 : 32, marginBottom: 8 }}>
                     {card.icon}
                   </div>
                   <div
-                    style={{ fontWeight: 700, fontSize: 14, color: "#0f172a" }}
+                    style={{
+                      fontWeight: 700,
+                      fontSize: mob ? 13 : 14,
+                      color: "#0f172a",
+                    }}
                   >
                     {card.title}
                   </div>
-                  <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>
+                  <div
+                    style={{
+                      fontSize: mob ? 11 : 12,
+                      color: "#94a3b8",
+                      marginTop: 3,
+                    }}
+                  >
                     {card.desc}
                   </div>
                 </div>
@@ -938,8 +1100,8 @@ export default function Portfolio() {
         {/* EXPERIENCE */}
         <Section id="experience">
           <SectionLabel>Career Path</SectionLabel>
-          <SectionTitle>Work Experience</SectionTitle>
-          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          <SectionTitle mobile={mob}>Work Experience</SectionTitle>
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             {P.exp.map((e, i) => (
               <GlassCard key={i} style={{ padding: 0, overflow: "hidden" }}>
                 <div style={{ display: "flex" }}>
@@ -952,21 +1114,21 @@ export default function Portfolio() {
                       flexShrink: 0,
                     }}
                   />
-                  <div style={{ padding: 32, flex: 1 }}>
+                  <div style={{ padding: mob ? "20px 16px" : "32px", flex: 1 }}>
                     <div
                       style={{
                         display: "flex",
+                        flexDirection: mob ? "column" : "row",
                         justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        flexWrap: "wrap",
-                        gap: 12,
+                        alignItems: mob ? "flex-start" : "flex-start",
+                        gap: mob ? 8 : 12,
                       }}
                     >
                       <div>
                         <h3
                           style={{
                             margin: 0,
-                            fontSize: 20,
+                            fontSize: mob ? 17 : 20,
                             fontWeight: 800,
                             color: "#0f172a",
                           }}
@@ -975,8 +1137,8 @@ export default function Portfolio() {
                         </h3>
                         <p
                           style={{
-                            margin: "6px 0 0",
-                            fontSize: 15,
+                            margin: "4px 0 0",
+                            fontSize: mob ? 13 : 15,
                             color: "#6366f1",
                             fontWeight: 600,
                           }}
@@ -986,9 +1148,9 @@ export default function Portfolio() {
                       </div>
                       <span
                         style={{
-                          padding: "6px 16px",
+                          padding: "5px 14px",
                           borderRadius: 10,
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: 700,
                           background: e.current
                             ? "linear-gradient(135deg,#6366f1,#a855f7)"
@@ -997,6 +1159,8 @@ export default function Portfolio() {
                           display: "flex",
                           alignItems: "center",
                           gap: 6,
+                          whiteSpace: "nowrap",
+                          flexShrink: 0,
                         }}
                       >
                         {e.current && (
@@ -1014,10 +1178,10 @@ export default function Portfolio() {
                     </div>
                     <div
                       style={{
-                        marginTop: 20,
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        gap: 10,
+                        marginTop: 16,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 8,
                       }}
                     >
                       {e.hl.map((h, j) => (
@@ -1034,13 +1198,14 @@ export default function Portfolio() {
                               color: "#a855f7",
                               fontSize: 16,
                               lineHeight: "22px",
+                              flexShrink: 0,
                             }}
                           >
                             {"\u203A"}
                           </span>
                           <span
                             style={{
-                              fontSize: 14,
+                              fontSize: mob ? 13 : 14,
                               color: "#475569",
                               lineHeight: 1.6,
                             }}
@@ -1060,74 +1225,83 @@ export default function Portfolio() {
         {/* PROJECTS */}
         <Section id="projects">
           <SectionLabel>Portfolio</SectionLabel>
-          <SectionTitle>Featured Projects</SectionTitle>
+          <SectionTitle mobile={mob}>Featured Projects</SectionTitle>
           <div
-            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}
+            style={{
+              display: "grid",
+              gridTemplateColumns: mob ? "1fr" : "1fr 1fr",
+              gap: mob ? 16 : 24,
+            }}
           >
             {P.projects.map((p, i) => (
               <div
                 key={i}
-                onMouseEnter={() => setHp(i)}
+                onMouseEnter={() => !mob && setHp(i)}
                 onMouseLeave={() => setHp(null)}
                 style={{
-                  borderRadius: 22,
+                  borderRadius: mob ? 18 : 22,
                   overflow: "hidden",
                   background: "#fff",
                   border:
                     "1px solid " + (hp === i ? p.color + "35" : "#e2e8f0"),
-                  transform: hp === i ? "translateY(-8px) scale(1.01)" : "none",
+                  transform: hp === i ? "translateY(-6px)" : "none",
                   boxShadow:
                     hp === i
                       ? "0 24px 60px " + p.color + "18"
                       : "0 4px 16px rgba(0,0,0,0.03)",
                   transition: "all 0.45s cubic-bezier(0.4,0,0.2,1)",
-                  position: "relative",
                 }}
               >
                 <div
                   style={{
-                    height: hp === i ? 8 : 5,
+                    height: 5,
                     background:
                       "linear-gradient(90deg, " +
                       p.color +
                       ", " +
                       p.color +
                       "88)",
-                    transition: "height 0.3s",
                   }}
                 />
-                <div style={{ padding: 28 }}>
+                <div style={{ padding: mob ? 20 : 28 }}>
                   <div
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 14,
-                      marginBottom: 14,
+                      gap: 12,
+                      marginBottom: 12,
                     }}
                   >
                     <span
                       style={{
-                        fontSize: 28,
-                        width: 56,
-                        height: 56,
+                        fontSize: mob ? 24 : 28,
+                        width: mob ? 48 : 56,
+                        height: mob ? 48 : 56,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         background: p.color + "10",
-                        borderRadius: 16,
+                        borderRadius: 14,
                         border: "1px solid " + p.color + "15",
+                        flexShrink: 0,
                       }}
                     >
                       {p.icon}
                     </span>
-                    <div>
-                      <h3 style={{ margin: 0, fontSize: 19, fontWeight: 800 }}>
+                    <div style={{ minWidth: 0 }}>
+                      <h3
+                        style={{
+                          margin: 0,
+                          fontSize: mob ? 16 : 19,
+                          fontWeight: 800,
+                        }}
+                      >
                         {p.name}
                       </h3>
                       <p
                         style={{
                           margin: "2px 0 0",
-                          fontSize: 12,
+                          fontSize: 11,
                           color: p.color,
                           fontWeight: 700,
                         }}
@@ -1138,10 +1312,10 @@ export default function Portfolio() {
                   </div>
                   <p
                     style={{
-                      fontSize: 14,
+                      fontSize: mob ? 13 : 14,
                       color: "#64748b",
                       lineHeight: 1.7,
-                      margin: "0 0 16px",
+                      margin: "0 0 14px",
                     }}
                   >
                     {p.desc}
@@ -1150,17 +1324,17 @@ export default function Portfolio() {
                     style={{
                       display: "flex",
                       flexWrap: "wrap",
-                      gap: 6,
-                      marginBottom: 16,
+                      gap: 5,
+                      marginBottom: 14,
                     }}
                   >
                     {p.feat.map((f) => (
                       <span
                         key={f}
                         style={{
-                          fontSize: 11,
-                          padding: "4px 10px",
-                          borderRadius: 8,
+                          fontSize: mob ? 10 : 11,
+                          padding: "3px 9px",
+                          borderRadius: 7,
                           background: "#f8fafc",
                           color: "#475569",
                           fontWeight: 500,
@@ -1174,18 +1348,18 @@ export default function Portfolio() {
                   <div
                     style={{
                       borderTop: "1px solid #f1f5f9",
-                      paddingTop: 14,
+                      paddingTop: 12,
                       display: "flex",
                       flexWrap: "wrap",
-                      gap: 6,
+                      gap: 5,
                     }}
                   >
                     {p.tech.map((t) => (
                       <span
                         key={t}
                         style={{
-                          fontSize: 11,
-                          padding: "5px 12px",
+                          fontSize: mob ? 10 : 11,
+                          padding: "4px 10px",
                           borderRadius: 8,
                           background: p.color + "08",
                           color: p.color,
@@ -1206,12 +1380,12 @@ export default function Portfolio() {
         {/* SKILLS */}
         <Section id="skills">
           <SectionLabel>Expertise</SectionLabel>
-          <SectionTitle>Tech Stack</SectionTitle>
+          <SectionTitle mobile={mob}>Tech Stack</SectionTitle>
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(3,1fr)",
-              gap: 20,
+              gridTemplateColumns: mob ? "1fr" : "repeat(3,1fr)",
+              gap: mob ? 12 : 20,
             }}
           >
             {Object.entries(P.skills).map(([cat, items], i) => {
@@ -1228,23 +1402,23 @@ export default function Portfolio() {
               return (
                 <GlassCard
                   key={cat}
-                  hover={hs === i}
-                  onMouseEnter={() => setHs(i)}
+                  hover={!mob && hs === i}
+                  onMouseEnter={() => !mob && setHs(i)}
                   onMouseLeave={() => setHs(null)}
-                  style={{ padding: 24 }}
+                  style={{ padding: mob ? 18 : 24 }}
                 >
                   <div
                     style={{
                       display: "flex",
                       alignItems: "center",
                       gap: 8,
-                      marginBottom: 16,
+                      marginBottom: 12,
                     }}
                   >
                     <div
                       style={{
                         width: 4,
-                        height: 20,
+                        height: 18,
                         borderRadius: 2,
                         background:
                           "linear-gradient(180deg," + c + "," + c + "66)",
@@ -1253,7 +1427,7 @@ export default function Portfolio() {
                     <h4
                       style={{
                         margin: 0,
-                        fontSize: 13,
+                        fontSize: 12,
                         fontWeight: 800,
                         color: c,
                         textTransform: "uppercase",
@@ -1268,8 +1442,8 @@ export default function Portfolio() {
                       <span
                         key={s}
                         style={{
-                          fontSize: 13,
-                          padding: "6px 14px",
+                          fontSize: mob ? 12 : 13,
+                          padding: "5px 12px",
                           borderRadius: 10,
                           background: "#f8fafc",
                           color: "#334155",
@@ -1290,32 +1464,44 @@ export default function Portfolio() {
         {/* EDUCATION */}
         <Section id="education">
           <SectionLabel>Background</SectionLabel>
-          <SectionTitle>Education</SectionTitle>
-          <div style={{ display: "flex", gap: 24, justifyContent: "center" }}>
+          <SectionTitle mobile={mob}>Education</SectionTitle>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: mob ? "column" : "row",
+              gap: mob ? 16 : 24,
+              justifyContent: "center",
+            }}
+          >
             {P.edu.map((e, i) => (
               <GlassCard
                 key={i}
-                style={{ padding: 32, textAlign: "center", minWidth: 240 }}
+                style={{
+                  padding: mob ? 24 : 32,
+                  textAlign: "center",
+                  flex: mob ? "auto" : "0 0 auto",
+                  minWidth: mob ? "auto" : 240,
+                }}
               >
                 <div
                   style={{
                     display: "inline-flex",
-                    width: 52,
-                    height: 52,
+                    width: 48,
+                    height: 48,
                     borderRadius: 14,
                     alignItems: "center",
                     justifyContent: "center",
                     background: "linear-gradient(135deg,#6366f1,#a855f7)",
-                    marginBottom: 16,
-                    fontSize: 24,
+                    marginBottom: 14,
+                    fontSize: 22,
                   }}
                 >
                   {"\u{1F393}"}
                 </div>
                 <h4
                   style={{
-                    margin: "0 0 6px",
-                    fontSize: 17,
+                    margin: "0 0 4px",
+                    fontSize: mob ? 16 : 17,
                     fontWeight: 700,
                     color: "#0f172a",
                   }}
@@ -1343,7 +1529,7 @@ export default function Portfolio() {
         id="contact"
         style={{
           background: "linear-gradient(160deg,#0a0f1e,#131832,#1a1040)",
-          padding: "100px 24px",
+          padding: mob ? "60px 16px" : "100px 24px",
           position: "relative",
           overflow: "hidden",
         }}
@@ -1353,8 +1539,8 @@ export default function Portfolio() {
             position: "absolute",
             top: "-30%",
             right: "-15%",
-            width: 500,
-            height: 500,
+            width: mob ? 250 : 500,
+            height: mob ? 250 : 500,
             borderRadius: "50%",
             background:
               "radial-gradient(circle,rgba(99,102,241,0.08) 0%,transparent 60%)",
@@ -1370,16 +1556,19 @@ export default function Portfolio() {
           }}
         >
           <SectionLabel>Get In Touch</SectionLabel>
-          <SectionTitle light>Let's Build Something Great</SectionTitle>
+          <SectionTitle light mobile={mob}>
+            Let's Build Something Great
+          </SectionTitle>
           <p
             style={{
               color: "#94a3b8",
-              fontSize: 17,
+              fontSize: mob ? 15 : 17,
               lineHeight: 1.8,
-              marginBottom: 48,
+              marginBottom: mob ? 32 : 48,
               maxWidth: 500,
               marginLeft: "auto",
               marginRight: "auto",
+              padding: "0 8px",
             }}
           >
             I'm always open to discussing new projects, creative ideas, or
@@ -1389,33 +1578,33 @@ export default function Portfolio() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 16,
+              gridTemplateColumns: mob ? "1fr" : "1fr 1fr",
+              gap: 12,
               maxWidth: 560,
               margin: "0 auto",
             }}
           >
             {[
               {
-                icon: <EmailIcon size={22} color="#818cf8" />,
+                icon: <EmailIcon size={20} color="#818cf8" />,
                 label: "Email",
                 value: P.email,
                 href: "mailto:" + P.email,
               },
               {
-                icon: <PhoneIcon size={22} color="#818cf8" />,
+                icon: <PhoneIcon size={20} color="#818cf8" />,
                 label: "Phone",
                 value: P.phone,
                 href: "tel:" + P.phone.replace(/[^+\d]/g, ""),
               },
               {
-                icon: <LinkedInIcon size={22} color="#818cf8" />,
+                icon: <LinkedInIcon size={20} color="#818cf8" />,
                 label: "LinkedIn",
                 value: "Connect with me",
                 href: P.linkedin,
               },
               {
-                icon: <GitHubIcon size={22} color="#818cf8" />,
+                icon: <GitHubIcon size={20} color="#818cf8" />,
                 label: "GitHub",
                 value: "View my code",
                 href: P.github,
@@ -1433,9 +1622,9 @@ export default function Portfolio() {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 14,
-                  padding: "20px 24px",
-                  borderRadius: 16,
+                  gap: 12,
+                  padding: mob ? "16px" : "20px 24px",
+                  borderRadius: 14,
                   background: "rgba(255,255,255,0.04)",
                   border: "1px solid rgba(255,255,255,0.08)",
                   color: "#e2e8f0",
@@ -1444,8 +1633,8 @@ export default function Portfolio() {
               >
                 <div
                   style={{
-                    width: 46,
-                    height: 46,
+                    width: 42,
+                    height: 42,
                     borderRadius: 12,
                     background: "rgba(99,102,241,0.1)",
                     display: "flex",
@@ -1459,7 +1648,7 @@ export default function Portfolio() {
                 <div style={{ textAlign: "left", minWidth: 0 }}>
                   <div
                     style={{
-                      fontSize: 11,
+                      fontSize: 10,
                       color: "#64748b",
                       fontWeight: 700,
                       textTransform: "uppercase",
@@ -1471,7 +1660,7 @@ export default function Portfolio() {
                   <div
                     style={{
                       fontWeight: 600,
-                      fontSize: 14,
+                      fontSize: mob ? 13 : 14,
                       marginTop: 2,
                       overflow: "hidden",
                       textOverflow: "ellipsis",
@@ -1487,13 +1676,14 @@ export default function Portfolio() {
 
           <div
             style={{
-              marginTop: 64,
-              paddingTop: 32,
+              marginTop: mob ? 40 : 64,
+              paddingTop: 24,
               borderTop: "1px solid rgba(255,255,255,0.06)",
               display: "flex",
+              flexDirection: mob ? "column" : "row",
               justifyContent: "center",
               alignItems: "center",
-              gap: 24,
+              gap: mob ? 16 : 24,
             }}
           >
             <div style={{ display: "flex", gap: 12 }}>
@@ -1532,14 +1722,16 @@ export default function Portfolio() {
                 </a>
               ))}
             </div>
-            <div
-              style={{
-                width: 1,
-                height: 20,
-                background: "rgba(255,255,255,0.08)",
-              }}
-            />
-            <p style={{ color: "#475569", fontSize: 13, margin: 0 }}>
+            {!mob && (
+              <div
+                style={{
+                  width: 1,
+                  height: 20,
+                  background: "rgba(255,255,255,0.08)",
+                }}
+              />
+            )}
+            <p style={{ color: "#475569", fontSize: 12, margin: 0 }}>
               {"\u00A9"} {new Date().getFullYear()} Abhishek Mishra
             </p>
           </div>
