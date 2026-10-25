@@ -5,7 +5,6 @@ const P = {
   title: "Software Engineer",
   loc: "Noida, Uttar Pradesh, India",
   email: "abhishekmofficial12@gmail.com",
-  phone: "+91 7800-7660-04",
   linkedin: "https://linkedin.com/in/abhishekmishra-it",
   github: "https://github.com/AbhishekMishra-IT",
   summary:
@@ -153,20 +152,6 @@ const EmailIcon = ({ size = 20, color = "currentColor" }) => (
   >
     <rect x="2" y="4" width="20" height="16" rx="2" />
     <path d="M22 4L12 13 2 4" />
-  </svg>
-);
-const PhoneIcon = ({ size = 20, color = "currentColor" }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={color}
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" />
   </svg>
 );
 const ExternalIcon = ({ size = 14, color = "currentColor" }) => (
@@ -1590,12 +1575,6 @@ export default function Portfolio() {
                 label: "Email",
                 value: P.email,
                 href: "mailto:" + P.email,
-              },
-              {
-                icon: <PhoneIcon size={20} color="#818cf8" />,
-                label: "Phone",
-                value: P.phone,
-                href: "tel:" + P.phone.replace(/[^+\d]/g, ""),
               },
               {
                 icon: <LinkedInIcon size={20} color="#818cf8" />,
